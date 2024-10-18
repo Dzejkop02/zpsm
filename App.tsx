@@ -25,6 +25,7 @@ import {
     ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 import Zad1 from "./Zad1";
+import Zad2 from "./Zad2";
 
 type SectionProps = PropsWithChildren<{
     title: string;
@@ -86,7 +87,7 @@ function App(): React.JSX.Element {
                 backgroundColor={backgroundStyle.backgroundColor}
             />
             <View style={styles.body}>
-                <Zad1 />
+                <Zad2 />
             </View>
         </SafeAreaView>
     );
