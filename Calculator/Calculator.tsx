@@ -1,67 +1,29 @@
 import React, {useState, useEffect} from 'react';
 import {Dimensions} from 'react-native';
+import { evaluate } from 'mathjs';
 
 import CalculatorVertical from './CalculatorVertical';
 import CalculatorHorizontal from './CalculatorHorizontal';
 
 export default function Calculator() {
     const [currentInput, setCurrentInput] = useState('0');
-    const [operator, setOperator] = useState<string | null>(null);
-    const [previousInput, setPreviousInput] = useState<string | null>(null);
     const [memory, setMemory] = useState(0);
     const [isRad, setIsRad] = useState(false);
     const [isHorizontal, setIsHorizontal] = useState(
         Dimensions.get('window').width > Dimensions.get('window').height
     );
 
-    const evaluate = (prev: string, curr: string, op: string | null) => {
-        let num1 = parseFloat(prev);
-        let num2 = parseFloat(curr);
-        if (op === '+') {
-            return num1 + num2;
-        }
-        if (op === '-') {
-            return num1 - num2;
-        }
-        if (op === '*') {
-            return num1 * num2;
-        }
-        if (op === '/') {
-            if (num2 === 0) {
-                return 'Error';
-            }
-            return num1 / num2;
-        }
-        if (op === '^') {
-            return Math.pow(num1, num2);
-        }
-        if (op === 'yroot') {
-            if (num2 === 0) {
-                return 'Error';
-            }
-            return Math.pow(num1, 1 / num2);
-        }
-    };
-
     const factorial = (n: number): number | string => {
-        if (n < 0 || !Number.isInteger(n)) {
-            return 'Error';
-        }
-        if (n === 0 || n === 1) {
-            return 1;
-        }
+        if (n < 0 || !Number.isInteger(n)) {return 'Error';}
+        if (n === 0 || n === 1) {return 1;}
         let result = 1;
-        for (let i = 2; i <= n; i++) {
-            result *= i;
-        }
+        for (let i = 2; i <= n; i++) {result *= i;}
         return result;
     };
 
-    const calculate = arg => {
+    const calculate = (arg: string) => {
         if (arg === 'AC') {
             setCurrentInput('0');
-            setPreviousInput(null);
-            setOperator(null);
             return;
         }
 
@@ -75,9 +37,7 @@ export default function Calculator() {
         }
 
         if (arg === '%') {
-            let input = parseFloat(currentInput);
-            input = input / 100;
-            setCurrentInput(input.toString());
+            setCurrentInput((parseFloat(currentInput) / 100).toString());
             return;
         }
 
@@ -89,7 +49,7 @@ export default function Calculator() {
         }
 
         if ('0123456789'.includes(arg)) {
-            if (currentInput === '0' || currentInput === 'Error') {
+            if (currentInput === '0') {
                 setCurrentInput(arg);
             } else {
                 setCurrentInput(currentInput + arg);
@@ -98,25 +58,16 @@ export default function Calculator() {
         }
 
         if (['+', '-', '*', '/'].includes(arg)) {
-            if (operator !== null && previousInput !== null) {
-                let result = evaluate(previousInput, currentInput, operator);
-                setPreviousInput(result.toString());
-                setCurrentInput('0');
-                setOperator(arg);
-            } else {
-                setOperator(arg);
-                setPreviousInput(currentInput);
-                setCurrentInput('0');
-            }
+            setCurrentInput(currentInput + arg);
             return;
         }
 
         if (arg === '=') {
-            if (operator !== null && previousInput !== null) {
-                let result = evaluate(previousInput, currentInput, operator);
+            try {
+                const result = evaluate(currentInput);
                 setCurrentInput(result.toString());
-                setPreviousInput(null);
-                setOperator(null);
+            } catch (e) {
+                setCurrentInput('Error');
             }
             return;
         }
@@ -138,6 +89,61 @@ export default function Calculator() {
 
         if (arg === 'mr') {
             setCurrentInput(memory.toString());
+            return;
+        }
+
+        if (arg === 'sin') {
+            let input = parseFloat(currentInput);
+            if (!isRad) {
+                input = input * (Math.PI / 180);
+            }
+            setCurrentInput(Math.sin(input).toString());
+            return;
+        }
+
+        if (arg === 'cos') {
+            let input = parseFloat(currentInput);
+            if (!isRad) {
+                input = input * (Math.PI / 180);
+            }
+            setCurrentInput(Math.cos(input).toString());
+            return;
+        }
+
+        if (arg === 'tan') {
+            let input = parseFloat(currentInput);
+            if (!isRad) {
+                input = input * (Math.PI / 180);
+            }
+            setCurrentInput(Math.tan(input).toString());
+            return;
+        }
+
+        if (arg === 'sinh') {
+            let input = parseFloat(currentInput);
+            let result = Math.sinh(input);
+            setCurrentInput(result.toString());
+            return;
+        }
+
+        if (arg === 'cosh') {
+            let input = parseFloat(currentInput);
+            let result = Math.cosh(input);
+            setCurrentInput(result.toString());
+            return;
+        }
+
+        if (arg === 'tanh') {
+            let input = parseFloat(currentInput);
+            let result = Math.tanh(input);
+            setCurrentInput(result.toString());
+            return;
+        }
+
+        if (arg === 'x!') {
+            const input = parseFloat(currentInput);
+            const result = factorial(input);
+            setCurrentInput(result.toString());
             return;
         }
 
@@ -204,20 +210,6 @@ export default function Calculator() {
             return;
         }
 
-        if (arg === 'xy' || arg === 'xʸ') {
-            setOperator('^');
-            setPreviousInput(currentInput);
-            setCurrentInput('0');
-            return;
-        }
-
-        if (arg === 'ysqrtx') {
-            setOperator('yroot');
-            setPreviousInput(currentInput);
-            setCurrentInput('0');
-            return;
-        }
-
         if (arg === 'ln') {
             let input = parseFloat(currentInput);
             if (input <= 0) {
@@ -240,64 +232,6 @@ export default function Calculator() {
             return;
         }
 
-        if (arg === 'sin') {
-            let input = parseFloat(currentInput);
-            if (!isRad) {
-                input = input * (Math.PI / 180);
-            }
-            let result = Math.sin(input);
-            setCurrentInput(result.toString());
-            return;
-        }
-
-        if (arg === 'cos') {
-            let input = parseFloat(currentInput);
-            if (!isRad) {
-                input = input * (Math.PI / 180);
-            }
-            let result = Math.cos(input);
-            setCurrentInput(result.toString());
-            return;
-        }
-
-        if (arg === 'tan') {
-            let input = parseFloat(currentInput);
-            if (!isRad) {
-                input = input * (Math.PI / 180);
-            }
-            let result = Math.tan(input);
-            setCurrentInput(result.toString());
-            return;
-        }
-
-        if (arg === 'sinh') {
-            let input = parseFloat(currentInput);
-            let result = Math.sinh(input);
-            setCurrentInput(result.toString());
-            return;
-        }
-
-        if (arg === 'cosh') {
-            let input = parseFloat(currentInput);
-            let result = Math.cosh(input);
-            setCurrentInput(result.toString());
-            return;
-        }
-
-        if (arg === 'tanh') {
-            let input = parseFloat(currentInput);
-            let result = Math.tanh(input);
-            setCurrentInput(result.toString());
-            return;
-        }
-
-        if (arg === 'x!') {
-            let input = parseFloat(currentInput);
-            let result = factorial(input);
-            setCurrentInput(result.toString());
-            return;
-        }
-
         if (arg === 'ex') {
             let input = parseFloat(currentInput);
             let result = Math.exp(input);
@@ -309,13 +243,6 @@ export default function Calculator() {
             let input = parseFloat(currentInput);
             let result = Math.pow(10, input);
             setCurrentInput(result.toString());
-            return;
-        }
-
-        if (arg === 'EE') {
-            if (!currentInput.includes('e')) {
-                setCurrentInput(currentInput + 'e');
-            }
             return;
         }
     };
@@ -332,8 +259,8 @@ export default function Calculator() {
     }, []);
 
     return isHorizontal ? (
-        <CalculatorHorizontal handlePress={calculate} value={currentInput}/>
+        <CalculatorHorizontal handlePress={calculate} value={currentInput} />
     ) : (
-        <CalculatorVertical handlePress={calculate} value={currentInput}/>
+        <CalculatorVertical handlePress={calculate} value={currentInput} />
     );
 }
