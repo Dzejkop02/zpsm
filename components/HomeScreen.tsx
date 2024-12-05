@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Text,
   View,
@@ -8,11 +8,43 @@ import {
 } from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import TestPreview from './TestPreview';
+import TermsScreen from './TermsScreen';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const [termsRead, setTermsRead] = useState(true);
+
+  const storeData = async value => {
+    try {
+      await AsyncStorage.setItem('my-key', value);
+    } catch (e) {}
+  };
+
+  const readData = async () => {
+    try {
+      const value = await AsyncStorage.getItem('my-key');
+      return value === '3';
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    (async () => {
+      const result = await readData();
+      if (!result) {
+        setTermsRead(false);
+        await storeData('3');
+
+        setTimeout(() => setTermsRead(true), 3000);
+      }
+    })();
+  }, []);
+
+  if (!termsRead) {
+    return <TermsScreen />;
+  }
 
   return (
     <ScrollView style={styles.container}>
