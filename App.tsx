@@ -1,6 +1,7 @@
 import 'react-native-gesture-handler';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
+import SplashScreen from 'react-native-splash-screen';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import HomeScreen from './components/HomeScreen';
 import ResultsScreen from './components/ResultsScreen';
@@ -17,6 +18,10 @@ const MyTheme = {
 };
 
 export default function App() {
+  useEffect(() => {
+    SplashScreen.hide();
+  });
+
   return (
     <NavigationContainer theme={MyTheme}>
       <Drawer.Navigator>
