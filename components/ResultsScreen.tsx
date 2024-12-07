@@ -1,42 +1,67 @@
 import React from 'react';
-import {Text, View, StyleSheet, ScrollView} from 'react-native';
+import {Text, View, StyleSheet, FlatList, RefreshControl} from 'react-native';
+import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+import {results} from './mocks/results';
+
+type ItemProps = {
+  nick: 'string';
+  score: 'number';
+  total: 'number';
+  type: 'string';
+  date: 'string';
+};
+
+const Item = ({nick, score, total, type, date}: ItemProps) => (
+  <View style={styles.row}>
+    <Text style={styles.cell}>{nick}</Text>
+    <Text style={styles.cell}>
+      {score}/{total}
+    </Text>
+    <Text style={styles.cell}>{type}</Text>
+    <Text style={styles.cell}>{date}</Text>
+  </View>
+);
 
 export default function ResultsScreen() {
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, []);
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.table}>
-        <View style={[styles.row, styles.header]}>
-          <Text style={styles.cell}>Nick</Text>
-          <Text style={styles.cell}>Point</Text>
-          <Text style={styles.cell}>Type</Text>
-          <Text style={styles.cell}>Date</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.cell}>asdf</Text>
-          <Text style={styles.cell}>18/20</Text>
-          <Text style={styles.cell}>test1</Text>
-          <Text style={styles.cell}>01-12-2024</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.cell}>fghj</Text>
-          <Text style={styles.cell}>18/20</Text>
-          <Text style={styles.cell}>test1</Text>
-          <Text style={styles.cell}>01-12-2024</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.cell}>zxc</Text>
-          <Text style={styles.cell}>16/20</Text>
-          <Text style={styles.cell}>test1</Text>
-          <Text style={styles.cell}>01-12-2024</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.cell}>qwe</Text>
-          <Text style={styles.cell}>3/20</Text>
-          <Text style={styles.cell}>test1</Text>
-          <Text style={styles.cell}>01-12-2024</Text>
-        </View>
-      </View>
-    </ScrollView>
+    <SafeAreaProvider>
+      <SafeAreaView>
+        <FlatList
+          data={results}
+          keyExtractor={(item, index) => 'key' + index}
+          renderItem={({item}: ItemProps) => (
+            <Item
+              nick={item.nick}
+              score={item.score}
+              total={item.total}
+              type={item.type}
+              date={item.date}
+            />
+          )}
+          ListHeaderComponent={
+            <View style={[styles.row, styles.header]}>
+              <Text style={styles.cell}>Nick</Text>
+              <Text style={styles.cell}>Point</Text>
+              <Text style={styles.cell}>Type</Text>
+              <Text style={styles.cell}>Date</Text>
+            </View>
+          }
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          contentContainerStyle={styles.container}
+        />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
@@ -65,7 +90,7 @@ const styles = StyleSheet.create({
     paddingBottom: 25,
     borderWidth: 1,
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: 13,
     color: 'black',
   },
 });
