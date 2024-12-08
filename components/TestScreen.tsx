@@ -2,30 +2,82 @@ import React, {useEffect, useState} from 'react';
 import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
 import {ProgressBar} from 'react-native-paper';
 import TestResultScreen from './TestResultScreen';
+import {task1, task2, task3} from './mocks/tasks';
+import {RouteProp, useRoute} from '@react-navigation/native';
+
+interface Answer {
+  content: string;
+  isCorrect: boolean;
+}
+
+interface Task {
+  question: string;
+  answers: Answer[];
+  duration: number;
+}
+
+type RootStackParamList = {
+  TestScreen: {testId: string};
+};
+
+type TestScreenRouteProp = RouteProp<RootStackParamList, 'TestScreen'>;
 
 export default function TestScreen() {
-  const MAX_TIME = 30;
-  const QUESTIONS = 10;
-  const [time, setTime] = useState(MAX_TIME);
+  const route = useRoute<TestScreenRouteProp>();
+  const {testId} = route.params;
+
+  let selectedTasks: Task[] = [];
+  switch (testId) {
+    case 'test1':
+      selectedTasks = task1;
+      break;
+    case 'test2':
+      selectedTasks = task2;
+      break;
+    case 'test3':
+      selectedTasks = task3;
+      break;
+    default:
+      selectedTasks = [];
+  }
+
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(
+    selectedTasks.length > 0 ? selectedTasks[0].duration : 30,
+  );
   const [progress, setProgress] = useState(1);
-  const [question, setQuestion] = useState(1);
-  const [showResult, setShowResult] = useState(true);
+  const [showResult, setShowResult] = useState(false);
+  const [score, setScore] = useState(0);
+
+  const totalQuestions = selectedTasks.length;
 
   useEffect(() => {
-    setTime(MAX_TIME);
-    setQuestion(1);
-  }, []);
+    if (totalQuestions === 0) {
+      setShowResult(true);
+    } else {
+      setCurrentQuestionIndex(0);
+      setTimeLeft(selectedTasks[0].duration);
+      setProgress(1);
+      setScore(0);
+      setShowResult(false);
+    }
+  }, [selectedTasks, totalQuestions]);
 
   useEffect(() => {
-    if (time === 0) {
-      nextQuestion();
+    if (showResult) {
+      return;
+    }
+
+    if (timeLeft === 0) {
+      handleNextQuestion(false);
       return;
     }
 
     const timerId = setInterval(() => {
-      setTime(prevTime => {
+      setTimeLeft(prevTime => {
         if (prevTime <= 1) {
           clearInterval(timerId);
+          handleNextQuestion(false);
           return 0;
         }
         return prevTime - 1;
@@ -33,57 +85,62 @@ export default function TestScreen() {
     }, 1000);
 
     return () => clearInterval(timerId);
-  }, [time]);
+  }, [timeLeft, showResult]);
 
   useEffect(() => {
-    setProgress(time / MAX_TIME);
-  }, [time]);
+    if (totalQuestions === 0) {
+      return;
+    }
+    const currentDuration = selectedTasks[currentQuestionIndex].duration;
+    setProgress(timeLeft / currentDuration);
+  }, [timeLeft, currentQuestionIndex, totalQuestions, selectedTasks]);
 
-  const nextQuestion = () => {
-    if (question < QUESTIONS) {
-      setQuestion(prev => prev + 1);
-      setTime(MAX_TIME);
+  const handleNextQuestion = (isCorrect: boolean) => {
+    if (isCorrect) {
+      setScore(prevScore => prevScore + 1);
+    }
+
+    if (currentQuestionIndex + 1 < totalQuestions) {
+      setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+      setTimeLeft(selectedTasks[currentQuestionIndex + 1].duration);
+    } else {
+      setShowResult(true);
     }
   };
 
+  const handleAnswerPress = (isCorrect: boolean) => {
+    handleNextQuestion(isCorrect);
+  };
+
   if (showResult) {
-    return <TestResultScreen result={6} total={10} />;
+    return <TestResultScreen result={score} total={totalQuestions} />;
   }
+
+  const currentQuestion = selectedTasks[currentQuestionIndex];
 
   return (
     <View style={styles.container}>
       <View style={styles.topBox}>
         <Text style={styles.text}>
-          Question {question} of {QUESTIONS}
+          Pytanie {currentQuestionIndex + 1} z {totalQuestions}
         </Text>
-        <Text style={styles.text}>Time: {time} sec</Text>
+        <Text style={styles.text}>Czas: {timeLeft} sek</Text>
       </View>
       <ProgressBar
         progress={progress}
         color="#4293DA"
         style={styles.progress}
       />
-      <Text style={styles.text}>
-        This is some example of a long question to fill the content?
-      </Text>
-      <Text style={styles.textDescription}>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam varius
-        vitae eros nec pellentesque. Class aptent taciti sociosqu ad litora
-        torquent per conubia nostra, per.
-      </Text>
+      <Text style={styles.questionText}>{currentQuestion.question}</Text>
       <View style={styles.answers}>
-        <TouchableOpacity style={styles.answer} onPress={nextQuestion}>
-          <Text style={styles.answerText}>Answer A</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.answer} onPress={nextQuestion}>
-          <Text style={styles.answerText}>Answer B</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.answer} onPress={nextQuestion}>
-          <Text style={styles.answerText}>Answer C</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.answer} onPress={nextQuestion}>
-          <Text style={styles.answerText}>Answer D</Text>
-        </TouchableOpacity>
+        {currentQuestion.answers.map((answer, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.answer}
+            onPress={() => handleAnswerPress(answer.isCorrect)}>
+            <Text style={styles.answerText}>{answer.content}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
   );
@@ -108,7 +165,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 40,
   },
-  textDescription: {
+  questionText: {
     color: 'black',
     marginTop: 10,
     textAlign: 'center',

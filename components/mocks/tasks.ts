@@ -180,3 +180,36 @@ export const task2 = [
     duration: 10,
   },
 ];
+
+export const task3 = [
+  {
+    question: 'Task 1?',
+    answers: [
+      {content: 'A', isCorrect: false},
+      {content: 'B true', isCorrect: true},
+      {content: 'C', isCorrect: false},
+      {content: 'D', isCorrect: false},
+    ],
+    duration: 3,
+  },
+  {
+    question: 'Task 2?',
+    answers: [
+      {content: 'A', isCorrect: false},
+      {content: 'B true', isCorrect: true},
+      {content: 'C', isCorrect: false},
+      {content: 'D', isCorrect: false},
+    ],
+    duration: 3,
+  },
+  {
+    question: 'Task 3?',
+    answers: [
+      {content: 'A', isCorrect: false},
+      {content: 'B true', isCorrect: true},
+      {content: 'C', isCorrect: false},
+      {content: 'D', isCorrect: false},
+    ],
+    duration: 3,
+  },
+];

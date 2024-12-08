@@ -6,6 +6,7 @@ import {createDrawerNavigator} from '@react-navigation/drawer';
 import HomeScreen from './components/HomeScreen';
 import ResultsScreen from './components/ResultsScreen';
 import TestScreen from './components/TestScreen';
+import { task1, task2, task3 } from './components/mocks/tasks';
 
 const Drawer = createDrawerNavigator();
 
@@ -42,6 +43,7 @@ export default function App() {
         <Drawer.Screen
           name="Test #1"
           component={TestScreen}
+          initialParams={{testId: 'test1'}}
           options={{
             headerTitleAlign: 'center',
           }}
@@ -49,6 +51,7 @@ export default function App() {
         <Drawer.Screen
           name="Test #2"
           component={TestScreen}
+          initialParams={{testId: 'test2'}}
           options={{
             headerTitleAlign: 'center',
           }}
@@ -56,6 +59,7 @@ export default function App() {
         <Drawer.Screen
           name="Test #3"
           component={TestScreen}
+          initialParams={{testId: 'test3'}}
           options={{
             headerTitleAlign: 'center',
           }}

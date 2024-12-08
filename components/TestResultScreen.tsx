@@ -6,7 +6,7 @@ export default function TestResultScreen({result, total}) {
     <View style={styles.container}>
       <Text style={styles.title}>Test result</Text>
       <Text style={styles.text}>
-        You scored {result}/{total} points
+        You scored {result} out of {total}
       </Text>
     </View>
   );

@@ -26,7 +26,7 @@ export default function HomeScreen() {
   const readData = async () => {
     try {
       const value = await AsyncStorage.getItem('my-key');
-      return value === '3';
+      return value === 'key';
     } catch (e) {}
   };
 
@@ -35,7 +35,7 @@ export default function HomeScreen() {
       const result = await readData();
       if (!result) {
         setTermsRead(false);
-        await storeData('3');
+        await storeData('key');
 
         setTimeout(() => setTermsRead(true), 3000);
       }
