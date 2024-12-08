@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
 import {ProgressBar} from 'react-native-paper';
+import TestResultScreen from './TestResultScreen';
 
 export default function TestScreen() {
   const MAX_TIME = 30;
@@ -8,6 +9,7 @@ export default function TestScreen() {
   const [time, setTime] = useState(MAX_TIME);
   const [progress, setProgress] = useState(1);
   const [question, setQuestion] = useState(1);
+  const [showResult, setShowResult] = useState(true);
 
   useEffect(() => {
     setTime(MAX_TIME);
@@ -43,6 +45,10 @@ export default function TestScreen() {
       setTime(MAX_TIME);
     }
   };
+
+  if (showResult) {
+    return <TestResultScreen result={6} total={10} />;
+  }
 
   return (
     <View style={styles.container}>
