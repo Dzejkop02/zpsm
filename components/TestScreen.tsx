@@ -217,6 +217,7 @@ const styles = StyleSheet.create({
     color: 'black',
     fontSize: 20,
     textAlign: 'center',
+    fontFamily: 'Roboto Regular',
   },
   progress: {
     borderRadius: 10,
@@ -229,6 +230,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 20,
     textAlign: 'center',
+    fontFamily: 'Roboto Regular',
   },
   answers: {
     marginTop: 15,
@@ -249,6 +251,7 @@ const styles = StyleSheet.create({
     color: 'black',
     textAlign: 'center',
     fontSize: 16,
+    fontFamily: 'Roboto Regular',
   },
   loadingContainer: {
     flex: 1,
@@ -266,6 +269,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 20,
     textAlign: 'center',
+    fontFamily: 'Roboto Regular',
   },
   retryButton: {
     padding: 10,
@@ -275,5 +279,6 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: 'white',
     fontSize: 16,
+    fontFamily: 'Roboto Regular',
   },
 });

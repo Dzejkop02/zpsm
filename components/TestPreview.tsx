@@ -24,9 +24,10 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   title: {
-    fontSize: 24,
+    fontSize: 30,
     marginBottom: 12,
     color: 'black',
+    fontFamily: 'Bebas Neue Regular',
   },
   tags: {
     flexDirection: 'row',
@@ -35,8 +36,10 @@ const styles = StyleSheet.create({
   tag: {
     marginRight: 7,
     color: '#555',
+    fontFamily: 'Roboto Regular',
   },
   description: {
     color: 'black',
+    fontFamily: 'Roboto Regular',
   },
 });

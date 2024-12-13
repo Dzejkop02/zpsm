@@ -5,7 +5,7 @@ export default function TestResultScreen({result, total, type}) {
   useEffect(() => {
     const sendResult = async () => {
       const payload = {
-        nick: 'Jan2',
+        nick: 'Testowy',
         score: result,
         total: total,
         type: type || 'undefined',
@@ -52,13 +52,15 @@ const styles = StyleSheet.create({
   },
   title: {
     color: 'black',
-    fontSize: 28,
+    fontSize: 38,
     marginBottom: 44,
     textAlign: 'center',
+    fontFamily: 'Bebas Neue Regular',
   },
   text: {
     color: 'black',
     fontSize: 16,
     textAlign: 'center',
+    fontFamily: 'Roboto Regular',
   },
 });

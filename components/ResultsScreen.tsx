@@ -149,6 +149,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontWeight: 'bold',
     color: '#333',
+    fontFamily: 'Roboto Regular',
   },
   loaderContainer: {
     flex: 1,
