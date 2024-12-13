@@ -1,8 +1,14 @@
 import React, {useEffect, useState} from 'react';
-import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
+import {
+  Text,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
 import {ProgressBar} from 'react-native-paper';
 import TestResultScreen from './TestResultScreen';
-import {task1, task2, task3} from './mocks/tasks';
 import {RouteProp, useRoute} from '@react-navigation/native';
 
 interface Answer {
@@ -16,6 +22,16 @@ interface Task {
   duration: number;
 }
 
+interface TestDetails {
+  id: string;
+  name: string;
+  description: string;
+  tags: string[];
+  level: string;
+  numberOfTasks: number;
+  tasks: Task[];
+}
+
 type RootStackParamList = {
   TestScreen: {testId: string};
 };
@@ -26,83 +42,90 @@ export default function TestScreen() {
   const route = useRoute<TestScreenRouteProp>();
   const {testId} = route.params;
 
-  let selectedTasks: Task[] = [];
-  switch (testId) {
-    case 'test1':
-      selectedTasks = task1;
-      break;
-    case 'test2':
-      selectedTasks = task2;
-      break;
-    case 'test3':
-      selectedTasks = task3;
-      break;
-    default:
-      selectedTasks = [];
-  }
+  const [testDetails, setTestDetails] = useState<TestDetails | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(
-    selectedTasks.length > 0 ? selectedTasks[0].duration : 30,
-  );
-  const [progress, setProgress] = useState(1);
-  const [showResult, setShowResult] = useState(false);
-  const [score, setScore] = useState(0);
-
-  const totalQuestions = selectedTasks.length;
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [progress, setProgress] = useState<number>(1);
+  const [showResult, setShowResult] = useState<boolean>(false);
+  const [score, setScore] = useState<number>(0);
 
   useEffect(() => {
-    if (totalQuestions === 0) {
-      setShowResult(true);
-    } else {
-      setCurrentQuestionIndex(0);
-      setTimeLeft(selectedTasks[0].duration);
-      setProgress(1);
-      setScore(0);
-      setShowResult(false);
+    fetchTestDetails();
+  }, [testId]);
+
+  const fetchTestDetails = async () => {
+    try {
+      const response = await fetch(`https://tgryl.pl/quiz/test/${testId}`);
+      if (!response.ok) {
+        throw new Error('Nie udało się pobrać szczegółów testu.');
+      }
+      const data: TestDetails = await response.json();
+      setTestDetails(data);
+      if (data.tasks.length > 0) {
+        setCurrentQuestionIndex(0);
+        setTimeLeft(data.tasks[0].duration);
+        setProgress(1);
+        setScore(0);
+      } else {
+        setShowResult(true);
+      }
+    } catch (err) {
+      console.error('Error fetching test details:', err);
+      setError(err.message || 'Wystąpił nieznany błąd.');
+    } finally {
+      setLoading(false);
     }
-  }, [selectedTasks, totalQuestions]);
+  };
 
   useEffect(() => {
-    if (showResult) {
+    if (showResult || !testDetails) {
       return;
     }
 
+    // Only handle next question if timeLeft is explicitly 0
     if (timeLeft === 0) {
       handleNextQuestion(false);
       return;
     }
 
+    // If timeLeft is null, don't start the timer
+    if (timeLeft === null) {
+      return;
+    }
+
     const timerId = setInterval(() => {
       setTimeLeft(prevTime => {
-        if (prevTime <= 1) {
+        if (prevTime !== null && prevTime <= 1) {
           clearInterval(timerId);
           handleNextQuestion(false);
           return 0;
         }
-        return prevTime - 1;
+        return prevTime !== null ? prevTime - 1 : null;
       });
     }, 1000);
 
     return () => clearInterval(timerId);
-  }, [timeLeft, showResult]);
+  }, [timeLeft, showResult, testDetails]);
 
   useEffect(() => {
-    if (totalQuestions === 0) {
+    if (!testDetails || testDetails.tasks.length === 0) {
       return;
     }
-    const currentDuration = selectedTasks[currentQuestionIndex].duration;
+    const currentDuration = testDetails.tasks[currentQuestionIndex].duration;
     setProgress(timeLeft / currentDuration);
-  }, [timeLeft, currentQuestionIndex, totalQuestions, selectedTasks]);
+  }, [timeLeft, currentQuestionIndex, testDetails]);
 
   const handleNextQuestion = (isCorrect: boolean) => {
     if (isCorrect) {
       setScore(prevScore => prevScore + 1);
     }
 
-    if (currentQuestionIndex + 1 < totalQuestions) {
+    if (testDetails && currentQuestionIndex + 1 < testDetails.tasks.length) {
       setCurrentQuestionIndex(prevIndex => prevIndex + 1);
-      setTimeLeft(selectedTasks[currentQuestionIndex + 1].duration);
+      setTimeLeft(testDetails.tasks[currentQuestionIndex + 1].duration);
     } else {
       setShowResult(true);
     }
@@ -112,17 +135,44 @@ export default function TestScreen() {
     handleNextQuestion(isCorrect);
   };
 
-  if (showResult) {
-    return <TestResultScreen result={score} total={totalQuestions} />;
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
   }
 
-  const currentQuestion = selectedTasks[currentQuestionIndex];
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={fetchTestDetails}>
+          <Text style={styles.retryButtonText}>Spróbuj ponownie</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (!testDetails) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Nie znaleziono testu.</Text>
+      </View>
+    );
+  }
+
+  if (showResult) {
+    return <TestResultScreen result={score} total={testDetails.tasks.length} />;
+  }
+
+  const currentQuestion = testDetails.tasks[currentQuestionIndex];
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.topBox}>
         <Text style={styles.text}>
-          Pytanie {currentQuestionIndex + 1} z {totalQuestions}
+          Pytanie {currentQuestionIndex + 1} z {testDetails.tasks.length}
         </Text>
         <Text style={styles.text}>Czas: {timeLeft} sek</Text>
       </View>
@@ -142,17 +192,20 @@ export default function TestScreen() {
           </TouchableOpacity>
         ))}
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    margin: 22,
+    padding: 22,
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   topBox: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginBottom: 10,
   },
   text: {
     color: 'black',
@@ -162,35 +215,59 @@ const styles = StyleSheet.create({
   progress: {
     borderRadius: 10,
     height: 15,
-    marginTop: 20,
-    marginBottom: 40,
+    marginTop: 10,
+    marginBottom: 20,
   },
   questionText: {
     color: 'black',
-    marginTop: 10,
+    fontSize: 18,
+    marginBottom: 20,
     textAlign: 'center',
   },
   answers: {
     marginTop: 15,
     padding: 10,
-    paddingTop: 30,
     borderWidth: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    borderRadius: 8,
+    flexDirection: 'column',
     justifyContent: 'space-between',
   },
   answer: {
-    padding: 5,
-    paddingTop: 10,
-    paddingBottom: 10,
-    width: '47%',
+    padding: 15,
     borderRadius: 6,
     backgroundColor: '#ccc',
     borderWidth: 1,
-    marginBottom: 25,
+    marginBottom: 15,
   },
   answerText: {
     color: 'black',
     textAlign: 'center',
+    fontSize: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 18,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  retryButton: {
+    padding: 10,
+    borderRadius: 5,
+    backgroundColor: '#4293DA',
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 16,
   },
 });

@@ -1,12 +1,12 @@
 import 'react-native-gesture-handler';
 import React, {useEffect, useState} from 'react';
+import {ActivityIndicator, View} from 'react-native';
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import SplashScreen from 'react-native-splash-screen';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import HomeScreen from './components/HomeScreen';
 import ResultsScreen from './components/ResultsScreen';
 import TestScreen from './components/TestScreen';
-import {ActivityIndicator, View} from 'react-native';
 
 const Drawer = createDrawerNavigator();
 
