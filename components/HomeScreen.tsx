@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import TestPreview from './TestPreview';
 import TermsScreen from './TermsScreen';
 
-export default function HomeScreen() {
+export default function HomeScreen({tests}) {
   const navigation = useNavigation();
   const [termsRead, setTermsRead] = useState(true);
 
@@ -49,10 +49,15 @@ export default function HomeScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.previews}>
-        <TestPreview title={'Title Test #1'} />
-        <TestPreview title={'Title Test #2'} />
-        <TestPreview title={'Title Test #3'} />
-        <TestPreview title={'Title Test #4'} />
+        {tests.map(test => (
+          <TestPreview
+            key={test.id}
+            title={test.name}
+            onPress={() => navigation.navigate(`Test: ${test.name}`)}
+            description={test.description}
+            tags={test.tags}
+          />
+        ))}
       </View>
       <View style={styles.results}>
         <Text style={styles.resultsTitle}>Get to know your ranking result</Text>
