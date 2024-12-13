@@ -163,7 +163,13 @@ export default function TestScreen() {
   }
 
   if (showResult) {
-    return <TestResultScreen result={score} total={testDetails.tasks.length} />;
+    return (
+      <TestResultScreen
+        result={score}
+        total={testDetails.tasks.length}
+        type={testDetails.tags[0]}
+      />
+    );
   }
 
   const currentQuestion = testDetails.tasks[currentQuestionIndex];
