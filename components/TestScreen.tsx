@@ -10,7 +10,10 @@ import {
 import {ProgressBar} from 'react-native-paper';
 import TestResultScreen from './TestResultScreen';
 import {RouteProp, useRoute} from '@react-navigation/native';
+import SQLite from 'react-native-sqlite-storage';
 import _ from 'lodash';
+
+const db = SQLite.openDatabase({name: 'QuizDB.db', location: 'default'});
 
 interface Answer {
   content: string;
@@ -54,32 +57,50 @@ export default function TestScreen() {
   const [score, setScore] = useState<number>(0);
 
   useEffect(() => {
-    fetchTestDetails();
+    fetchTestDetailsFromDatabase();
   }, [testId]);
 
-  const fetchTestDetails = async () => {
-    try {
-      const response = await fetch(`https://tgryl.pl/quiz/test/${testId}`);
-      if (!response.ok) {
-        throw new Error('Nie udało się pobrać szczegółów testu.');
-      }
-      const data: TestDetails = await response.json();
-      data.tasks = _.shuffle(data.tasks);
-      setTestDetails(data);
-      if (data.tasks.length > 0) {
-        setCurrentQuestionIndex(0);
-        setTimeLeft(data.tasks[0].duration);
-        setProgress(1);
-        setScore(0);
-      } else {
-        setShowResult(true);
-      }
-    } catch (err) {
-      console.error('Error fetching test details:', err);
-      setError(err.message || 'Wystąpił nieznany błąd.');
-    } finally {
-      setLoading(false);
-    }
+  const fetchTestDetailsFromDatabase = () => {
+    setLoading(true);
+    db.transaction(tx => {
+      tx.executeSql(
+        'SELECT * FROM TestDetails WHERE id = ?;',
+        [testId],
+        (tx, results) => {
+          if (results.rows.length > 0) {
+            const row = results.rows.item(0);
+            const tasks = JSON.parse(row.tasks || '[]');
+            const details: TestDetails = {
+              id: row.id,
+              name: row.name,
+              description: row.description,
+              tags: JSON.parse(row.tags || '[]'),
+              level: row.level,
+              numberOfTasks: tasks.length,
+              tasks: _.shuffle(tasks),
+            };
+            setTestDetails(details);
+            if (tasks.length > 0) {
+              setCurrentQuestionIndex(0);
+              setTimeLeft(tasks[0].duration);
+              setProgress(1);
+              setScore(0);
+            } else {
+              setShowResult(true);
+            }
+          } else {
+            setError(
+              'Nie znaleziono szczegółów testu w lokalnej bazie danych.',
+            );
+          }
+        },
+        error => {
+          console.error('Error fetching test details from database:', error);
+          setError('Wystąpił błąd podczas odczytu danych z bazy.');
+        },
+      );
+    });
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -87,13 +108,11 @@ export default function TestScreen() {
       return;
     }
 
-    // Only handle next question if timeLeft is explicitly 0
     if (timeLeft === 0) {
       handleNextQuestion(false);
       return;
     }
 
-    // If timeLeft is null, don't start the timer
     if (timeLeft === null) {
       return;
     }
@@ -149,7 +168,9 @@ export default function TestScreen() {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchTestDetails}>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={fetchTestDetailsFromDatabase}>
           <Text style={styles.retryButtonText}>Spróbuj ponownie</Text>
         </TouchableOpacity>
       </View>
@@ -158,8 +179,8 @@ export default function TestScreen() {
 
   if (!testDetails) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Nie znaleziono testu.</Text>
+      <View>
+        <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
   }
