@@ -10,6 +10,7 @@ import {
   DrawerItemList,
 } from '@react-navigation/drawer';
 import SQLite from 'react-native-sqlite-storage';
+import NetInfo from '@react-native-community/netinfo';
 import _ from 'lodash';
 import HomeScreen from './components/HomeScreen';
 import ResultsScreen from './components/ResultsScreen';
@@ -42,7 +43,7 @@ export default function App() {
   useEffect(() => {
     SplashScreen.hide();
     initializeDatabase();
-    checkLastUpdateAndFetchTests();
+    checkConnectivityAndFetchTests();
   }, []);
 
   const initializeDatabase = () => {
@@ -83,6 +84,20 @@ export default function App() {
         () => console.log('Meta table created successfully'),
         error => console.error('Error creating Meta table:', error),
       );
+    });
+  };
+
+  const checkConnectivityAndFetchTests = () => {
+    NetInfo.fetch().then(state => {
+      if (state.isConnected) {
+        console.log(
+          'Internet connection available. Fetching tests from server.',
+        );
+        checkLastUpdateAndFetchTests();
+      } else {
+        console.log('No internet connection. Loading tests from database.');
+        fetchTestsFromDatabase();
+      }
     });
   };
 
