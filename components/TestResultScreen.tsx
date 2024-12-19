@@ -5,7 +5,7 @@ export default function TestResultScreen({result, total, type}) {
   useEffect(() => {
     const sendResult = async () => {
       const payload = {
-        nick: 'Testowy',
+        nick: 'Jakub',
         score: result,
         total: total,
         type: type || 'undefined',

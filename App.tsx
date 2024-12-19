@@ -27,7 +27,7 @@ const MyTheme = {
 };
 
 const db = SQLite.openDatabase(
-  {name: 'QuizDB.db', location: 'default'},
+  {name: 'QuizDB3.db', location: 'default'},
   () => {
     console.log('Database opened successfully');
   },
@@ -67,6 +67,7 @@ export default function App() {
           id TEXT PRIMARY KEY,
           name TEXT,
           description TEXT,
+          tags TEXT,
           level TEXT,
           tasks TEXT
         );`,
@@ -188,20 +189,20 @@ export default function App() {
           () => console.log(`Test ${test.id} inserted successfully`),
           error => console.error('Error inserting test:', error),
         );
-        fetchAndStoreTestDetails(test.id);
+        fetchAndStoreTestDetails(test.id, tags);
       });
     });
   };
 
-  const fetchAndStoreTestDetails = async testId => {
+  const fetchAndStoreTestDetails = async (testId, tags) => {
     try {
       const response = await fetch(`https://tgryl.pl/quiz/test/${testId}`);
       const data = await response.json();
       const tasks = JSON.stringify(data.tasks);
       db.transaction(tx => {
         tx.executeSql(
-          'INSERT OR REPLACE INTO TestDetails (id, name, description, level, tasks) VALUES (?, ?, ?, ?, ?);',
-          [data.id, data.name, data.description, data.level, tasks],
+          'INSERT OR REPLACE INTO TestDetails (id, name, description, tags, level, tasks) VALUES (?, ?, ?, ?, ?, ?);',
+          [data.id, data.name, data.description, tags, data.level, tasks],
           () =>
             console.log(`Test details for ${data.id} inserted successfully`),
           error => console.error('Error inserting test details:', error),

@@ -7,13 +7,13 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import SQLite from 'react-native-sqlite-storage';
 import {ProgressBar} from 'react-native-paper';
 import TestResultScreen from './TestResultScreen';
 import {RouteProp, useRoute} from '@react-navigation/native';
-import SQLite from 'react-native-sqlite-storage';
 import _ from 'lodash';
 
-const db = SQLite.openDatabase({name: 'QuizDB.db', location: 'default'});
+const db = SQLite.openDatabase({name: 'QuizDB3.db', location: 'default'});
 
 interface Answer {
   content: string;
@@ -70,11 +70,13 @@ export default function TestScreen() {
           if (results.rows.length > 0) {
             const row = results.rows.item(0);
             const tasks = JSON.parse(row.tasks || '[]');
+            const tags = row.tags ? JSON.parse(row.tags) : []; // Ensure tags are parsed correctly
+            console.log('Fetched tags:', tags); // Log tags
             const details: TestDetails = {
               id: row.id,
               name: row.name,
               description: row.description,
-              tags: JSON.parse(row.tags || '[]'),
+              tags: Array.isArray(tags) ? tags : [], // Validate tags are an array
               level: row.level,
               numberOfTasks: tasks.length,
               tasks: _.shuffle(tasks),
@@ -158,7 +160,7 @@ export default function TestScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View>
         <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
@@ -190,7 +192,7 @@ export default function TestScreen() {
       <TestResultScreen
         result={score}
         total={testDetails.tasks.length}
-        type={testDetails.tags[0]}
+        type={testDetails.tags[0] || 'Brak tagów'}
       />
     );
   }
