@@ -70,13 +70,13 @@ export default function TestScreen() {
           if (results.rows.length > 0) {
             const row = results.rows.item(0);
             const tasks = JSON.parse(row.tasks || '[]');
-            const tags = row.tags ? JSON.parse(row.tags) : []; // Ensure tags are parsed correctly
-            console.log('Fetched tags:', tags); // Log tags
+            const tags = row.tags ? JSON.parse(row.tags) : [];
+            console.log('Fetched tags:', tags);
             const details: TestDetails = {
               id: row.id,
               name: row.name,
               description: row.description,
-              tags: Array.isArray(tags) ? tags : [], // Validate tags are an array
+              tags: Array.isArray(tags) ? tags : [],
               level: row.level,
               numberOfTasks: tasks.length,
               tasks: _.shuffle(tasks),

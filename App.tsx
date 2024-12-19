@@ -146,7 +146,7 @@ export default function App() {
           const tests = [];
           for (let i = 0; i < rows.length; i++) {
             const test = rows.item(i);
-            test.tags = JSON.parse(test.tags || '[]'); // Ensure tags are parsed
+            test.tags = JSON.parse(test.tags || '[]');
             tests.push(test);
           }
           setTests(_.shuffle(tests));
@@ -175,7 +175,7 @@ export default function App() {
   const storeTestsInDatabase = tests => {
     db.transaction(tx => {
       tests.forEach(test => {
-        const tags = JSON.stringify(test.tags || []); // Ensure tags are always an array
+        const tags = JSON.stringify(test.tags || []);
         tx.executeSql(
           'INSERT OR REPLACE INTO Tests (id, name, description, tags, level, numberOfTasks) VALUES (?, ?, ?, ?, ?, ?);',
           [
