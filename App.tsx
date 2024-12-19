@@ -1,9 +1,15 @@
 import 'react-native-gesture-handler';
 import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, Alert, View} from 'react-native';
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import SplashScreen from 'react-native-splash-screen';
-import {createDrawerNavigator} from '@react-navigation/drawer';
+import {
+  createDrawerNavigator,
+  DrawerContentScrollView,
+  DrawerItem,
+  DrawerItemList,
+} from '@react-navigation/drawer';
+import _ from 'lodash';
 import HomeScreen from './components/HomeScreen';
 import ResultsScreen from './components/ResultsScreen';
 import TestScreen from './components/TestScreen';
@@ -31,13 +37,33 @@ export default function App() {
     try {
       const response = await fetch('https://tgryl.pl/quiz/tests');
       const data = await response.json();
-      setTests(data);
+      setTests(_.shuffle(data));
     } catch (error) {
       console.error('Error fetching tests:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  const handleRandomTest = navigation => {
+    if (tests.length === 0) {
+      Alert.alert('No Tests Available', 'Please refresh the tests first.');
+      return;
+    }
+    const randomTest = tests[Math.floor(Math.random() * tests.length)];
+    navigation.navigate(`Test: ${randomTest.name}`, {testId: randomTest.id});
+  };
+
+  const CustomDrawerContent = props => (
+    <DrawerContentScrollView {...props}>
+      <DrawerItemList {...props} />
+      <DrawerItem label="Refresh Tests" onPress={fetchTests} />
+      <DrawerItem
+        label="Random Test"
+        onPress={() => handleRandomTest(props.navigation)}
+      />
+    </DrawerContentScrollView>
+  );
 
   if (loading) {
     return (
@@ -49,7 +75,8 @@ export default function App() {
 
   return (
     <NavigationContainer theme={MyTheme}>
-      <Drawer.Navigator>
+      <Drawer.Navigator
+        drawerContent={props => <CustomDrawerContent {...props} />}>
         <Drawer.Screen
           name="Home"
           children={() => <HomeScreen tests={tests} />}

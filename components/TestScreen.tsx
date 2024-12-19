@@ -10,6 +10,7 @@ import {
 import {ProgressBar} from 'react-native-paper';
 import TestResultScreen from './TestResultScreen';
 import {RouteProp, useRoute} from '@react-navigation/native';
+import _ from 'lodash';
 
 interface Answer {
   content: string;
@@ -63,6 +64,7 @@ export default function TestScreen() {
         throw new Error('Nie udało się pobrać szczegółów testu.');
       }
       const data: TestDetails = await response.json();
+      data.tasks = _.shuffle(data.tasks);
       setTestDetails(data);
       if (data.tasks.length > 0) {
         setCurrentQuestionIndex(0);
